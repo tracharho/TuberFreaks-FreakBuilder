@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stranger Sheet</title>
+    <title>Tuber Freak Creator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Roboto Mono', monospace;
+            font-family: 'EB Garamond', serif;
             background-color: #f0f2f5;
         }
         .sheet-container {
             border: 2px solid #1f2937;
+            position: relative; /* For remove button */
         }
         .section {
             border: 1px solid #9ca3af;
             padding: 0.75rem;
             display: flex;
             flex-direction: column;
-            position: relative; /* Needed for remove button positioning */
+            height: 100%; /* Ensure sections fill grid cells */
         }
         .section-title {
             font-weight: 700;
@@ -37,8 +38,8 @@
             border-bottom: 1px solid #9ca3af;
             background-color: transparent;
             padding: 0.25rem 0.1rem;
-            font-family: 'Inter', sans-serif;
-            resize: vertical;
+            font-family: 'EB Garamond', serif;
+            resize: none; /* Disable manual resize */
         }
         .input-field:focus, .textarea-field:focus {
             outline: none;
@@ -63,29 +64,15 @@
             text-align: center;
             border: none;
             background: transparent;
+            font-family: 'EB Garamond', serif;
         }
         .attribute-table input:focus {
             outline:none;
         }
-        .label-sm {
-             font-size: 0.7rem;
-             font-weight: bold;
-             color: #6b7280;
+        .highlight-entry {
+            background-color: #eff6ff !important; /* A very light blue background */
         }
-        /* Spinner for loading button */
-        .loader {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3498db;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .remove-item-btn {
+        .remove-freak-btn {
             position: absolute;
             top: 0.25rem;
             right: 0.5rem;
@@ -96,12 +83,10 @@
             color: #9ca3af;
             cursor: pointer;
             padding: 0;
+            z-index: 10;
         }
-        .remove-item-btn:hover {
+        .remove-freak-btn:hover {
             color: #ef4444;
-        }
-        .highlight-entry {
-            background-color: #eff6ff !important; /* A very light blue background */
         }
 
         /* --- Dark Mode Styles --- */
@@ -147,612 +132,277 @@
         .dark-mode .highlight-entry {
             background-color: #1e293b !important;
         }
-        .dark-mode #total-points-display {
+        .dark-mode .freak-total-cost {
             color: #60a5fa;
         }
-        .dark-mode .remove-item-btn {
-            color: #6b7280;
+        .dark-mode #warband-cost-display {
+             color: #60a5fa;
         }
-        .dark-mode .remove-item-btn:hover {
+         .dark-mode .remove-freak-btn {
+            color: #4b5563;
+        }
+        .dark-mode .remove-freak-btn:hover {
             color: #fca5a5;
         }
     </style>
 </head>
 <body class="p-4 md:p-8 transition-colors duration-300">
 
-    <main class="sheet-container max-w-7xl mx-auto bg-white shadow-lg p-4 grid grid-cols-12 gap-2">
-
-        <!-- Main Content Area -->
-        <div class="col-span-12 grid grid-cols-12 gap-2">
-
-            <!-- Header -->
-            <div class="col-span-12 border-b-2 border-gray-700 pb-2 mb-2">
-                <div class="flex justify-between items-start">
-                    <h1 class="text-xl md:text-2xl font-bold uppercase tracking-widest text-center flex-grow">Stranger Sheet</h1>
-                    <!-- Theme Toggle -->
-                     <div class="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
-                            <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
-                        </svg>
-                        <button id="theme-toggle" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors bg-gray-200 focus:outline-none">
-                            <span id="theme-toggle-indicator" class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform translate-x-1"></span>
-                        </button>
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-fill" viewBox="0 0 16 16">
-                            <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center mt-2">
-                    <div class="flex items-center gap-2">
-                        <label for="name" class="font-bold uppercase">Name:</label>
-                        <input type="text" id="name" name="name" class="input-field flex-grow highlight-entry" style="min-width: 350px;">
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold uppercase text-lg">Total Points:</span>
-                        <span id="total-points-display" class="text-xl md:text-2xl font-bold text-blue-600">0</span>
-                    </div>
-                </div>
+    <!-- Global Header -->
+    <div class="max-w-4xl mx-auto mb-4">
+        <div class="flex justify-between items-start">
+            <h1 class="text-xl md:text-2xl font-bold uppercase tracking-widest text-center flex-grow">Tuber Freak Creator</h1>
+            <!-- Theme Toggle -->
+             <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
+                    <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                </svg>
+                <button id="theme-toggle" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors bg-gray-200 focus:outline-none">
+                    <span id="theme-toggle-indicator" class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform translate-x-1"></span>
+                </button>
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-fill" viewBox="0 0 16 16">
+                    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                </svg>
             </div>
+        </div>
+        <div class="flex flex-col md:flex-row justify-between items-center mt-2 border-b-2 border-gray-700 pb-2 mb-2 gap-4">
+            <!-- Warband Name -->
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <label for="warband-name" class="font-bold uppercase text-lg">Warband Name:</label>
+                <input type="text" id="warband-name" name="warband-name" class="input-field highlight-entry flex-grow" value="My Warband">
+            </div>
+            <!-- Total Cost -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <span class="font-bold uppercase text-lg">Total Warband Cost:</span>
+                <span id="warband-cost-display" class="text-xl md:text-2xl font-bold text-blue-600">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Container for all freak cards -->
+    <div id="warband-container" class="space-y-4">
+        <!-- Freak cards will be injected here -->
+    </div>
 
-            <!-- Vocation & Attributes Row --><div class="col-span-12 flex flex-col lg:flex-row gap-2">
-                <!-- Vocation --><div class="section !relative lg:w-3/5">
-                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        <div class="flex-grow w-full">
-                            <label for="vocation" class="section-title">Vocation:</label>
-                            <select id="vocation" name="vocation" class="input-field bg-white highlight-entry">
-                                <option value="" selected>Select a Vocation</option>
-                                <option value="Warrior of the Blood Deity">Warrior of the Blood Deity</option>
-                                <option value="Blue Collar">Blue Collar</option>
-                                <option value="Bounty Hunter">Bounty Hunter</option>
-                                <option value="Fanatic">Fanatic</option>
-                                <option value="Gun Guru">Gun Guru</option>
-                                <option value="Gutter Born">Gutter Born</option>
-                                <option value="Apothecarian">Apothecarian</option>
-                                <option value="Psion">Psion</option>
-                                <option value="Psycho Sorcerer">Psycho Sorcerer</option>
-                                <option value="Cosmic Friar">Cosmic Friar</option>
-                                <option value="Philosopher of the Change Deity">Philosopher of the Change Deity</option>
-                                <option value="Scrap Commander">Scrap Commander</option>
-                                <option value="Buz' Zuk-ah">Buz' Zuk-ah</option>
-                                <option value="Super Space Soldier">Super Space Soldier</option>
-                                <option value="Courier of the Rot Deity">Courier of the Rot Deity</option>
-                                <option value="Veteran Vanguard">Veteran Vanguard</option>
-                                <option value="Rock Robot">Rock Robot</option>
-                                <option value="Mechanical Hulk">Mechanical Hulk</option>
-                                <option value="Space Cowboy">Space Cowboy</option>
-                                <option value="Masochist of the Lust Deity">Masochist of the Lust Deity</option>
-                            </select>
+    <!-- Add Freak Button -->
+    <div class="max-w-4xl mx-auto mt-4">
+        <button id="add-freak-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+            + Add New Freak
+        </button>
+    </div>
+
+    <!-- 
+    =========================================
+    FREAK TEMPLATE
+    =========================================
+    -->
+    <template id="freak-template">
+        <main class="sheet-container max-w-4xl mx-auto bg-white shadow-lg p-4 grid grid-cols-12 gap-2">
+            <button class="remove-freak-btn" title="Remove Freak">&times;</button>
+            <!-- Main Content Area -->
+            <div class="col-span-12 grid grid-cols-12 gap-2">
+
+                <!-- Header -->
+                <div class="col-span-12 border-b-2 border-gray-700 pb-2 mb-2 flex justify-between items-center">
+                    <!-- Name -->
+                    <div class="flex-grow">
+                        <label for="name" class="section-title">Name:</label>
+                        <input type="text" name="name" class="input-field highlight-entry name-input">
+                    </div>
+                    <!-- Freak Cost -->
+                    <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                        <span class="font-bold uppercase text-lg">Freak Cost:</span>
+                        <span class="freak-total-cost text-xl md:text-2xl font-bold text-blue-600">0</span>
+                    </div>
+                </div>
+
+                <!-- Main Grid -->
+                <div class="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    
+                    <!-- Left Column -->
+                    <div class="grid grid-cols-1 gap-2 auto-rows-min">
+                        <!-- Leader Toggle -->
+                        <div class="section flex-row justify-between items-center">
+                            <label for="is-leader" class="section-title !mb-0">Leader Status:</label>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" name="is-leader" class="h-5 w-5 text-blue-600 rounded highlight-entry focus:ring-blue-500 is-leader-toggle">
+                                <span class="text-sm font-bold">Leader</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Attributes -->
+                        <div class="section">
+                            <h2 class="section-title text-center">Characteristics</h2>
+                            <table class="attribute-table">
+                                <thead>
+                                    <tr>
+                                        <th>CHA</th>
+                                        <th>LVL</th>
+                                        <th>COST</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>BLU</td>
+                                        <td>
+                                            <select name="blu_level" class="input-field level-select bg-white w-full text-center highlight-entry">
+                                                <option value="1-4">1-4</option>
+                                                <option value="1-3">1-3</option>
+                                                <option value="1-2">1-2</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" name="blu_cost" readonly class="bg-gray-100 cost-input"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SPD</td>
+                                        <td>
+                                            <select name="spd_level" class="input-field level-select bg-white w-full text-center highlight-entry">
+                                                <option value="1 Chain">1 Chain</option>
+                                                <option value="2 Chains">2 Chains</option>
+                                                <option value="3 Chains">3 Chains</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" name="spd_cost" readonly class="bg-gray-100 cost-input"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>RNG</td>
+                                        <td>
+                                            <select name="rng_level" data-keymap="rng" class="input-field level-select bg-white w-full text-center highlight-entry">
+                                                <option value="2d6">2d6</option>
+                                                <option value="2d8">2d8</option>
+                                                <option value="2d10">2d10</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" name="rng_cost" readonly class="bg-gray-100 cost-input"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>MEL</td>
+                                        <td>
+                                            <select name="mel_level" data-keymap="mel" class="input-field level-select bg-white w-full text-center highlight-entry">
+                                                <option value="2d6">2d6</option>
+                                                <option value="2d8">2d8</option>
+                                                <option value="2d10">2d10</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" name="mel_cost" readonly class="bg-gray-100 cost-input"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>WtL</td>
+                                        <td>
+                                            <select name="wtl_level" data-keymap="wtl" class="input-field level-select bg-white w-full text-center highlight-entry">
+                                                <option value="2d6">2d6</option>
+                                                <option value="2d8">2d8</option>
+                                                <option value="2d10">2d10</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" name="wtl_cost" readonly class="bg-gray-100 cost-input"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Leader Trait (Hidden by default) -->
+                        <div class="section leader-trait-section hidden">
+                            <div class="flex justify-between items-center">
+                                <label for="leader-trait" class="section-title">Leader Trait:</label>
+                                <button class="generate-leader-trait-btn text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded-md transition duration-300">Generate Trait</button>
+                            </div>
+                            <textarea name="leader-trait" rows="6" class="textarea-field flex-grow highlight-entry mt-2 leader-trait-textarea"></textarea>
                         </div>
                     </div>
 
-                    <label for="vocation_notes" class="section-title mt-2">Notes:</label>
-                    <textarea id="vocation_notes" name="vocation_notes" rows="4" class="textarea-field bg-gray-100" readonly></textarea>
+                    <!-- Right Column -->
+                    <div class="grid grid-cols-1 gap-2 auto-rows-min">
+                        <!-- Equipment -->
+                        <div class="section">
+                            <label for="equipment" class="section-title">Equipment:</label>
+                            <select name="equipment" class="input-field bg-white highlight-entry equipment-select">
+                                <option value="" selected>Select Equipment</option>
+                                <option value="Black Powder Weapons">Black Powder Weapons</option>
+                                <option value="Missile Weapons">Missile Weapons</option>
+                                <option value="Close Combat Weapons">Close Combat Weapons</option>
+                            </select>
+                            <label for="equipment_notes" class="section-title mt-2">Notes:</label>
+                            <textarea name="equipment_notes" rows="6" class="textarea-field flex-grow bg-gray-100 equipment-notes" readonly></textarea>
+                        </div>
 
-                </div>
-                
-                <!-- Attributes --><div class="section lg:w-2/5">
-                    <h2 class="section-title text-center">Attributes</h2>
-                    <table class="attribute-table" id="attributes-table">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>DT</th>
-                                <th>LEVEL</th>
-                                <th>POINTS</th>
-                                <th>CM</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- AGI has a unique structure --><tr>
-                                <td>AGI</td>
-                                <td class="bg-gray-200"></td> <!-- AGI has no DT --><td>
-                                    <select name="agi_level" data-attribute="agi" class="input-field level-select bg-white w-full text-center highlight-entry">
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                    </select>
-                                </td>
-                                <td><input type="text" name="agi_points" readonly class="bg-gray-100 point-input"></td>
-                                 <td class="bg-gray-200"></td> <!-- AGI has no CM --></tr>
-                            <!-- Other Attributes --><tr>
-                                <td>CON</td>
-                                <td><input type="text" name="con_dt" readonly class="bg-gray-100"></td>
-                                <td>
-                                    <select name="con_level" data-attribute="con" class="input-field level-select bg-white w-full text-center highlight-entry">
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                    </select>
-                                </td>
-                                <td><input type="text" name="con_points" readonly class="bg-gray-100 point-input"></td>
-                                <td><input type="text" name="con_cm" class="highlight-entry"></td>
-                            </tr>
-                            <tr>
-                                <td>DEX</td>
-                                <td><input type="text" name="dex_dt" readonly class="bg-gray-100"></td>
-                                <td>
-                                    <select name="dex_level" data-attribute="dex" class="input-field level-select bg-white w-full text-center highlight-entry">
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                    </select>
-                                </td>
-                                <td><input type="text" name="dex_points" readonly class="bg-gray-100 point-input"></td>
-                                <td><input type="text" name="dex_cm" class="highlight-entry"></td>
-                            </tr>
-                            <tr>
-                                <td>PRW</td>
-                                <td><input type="text" name="prw_dt" readonly class="bg-gray-100"></td>
-                                <td>
-                                    <select name="prw_level" data-attribute="prw" class="input-field level-select bg-white w-full text-center highlight-entry">
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                    </select>
-                                </td>
-                                <td><input type="text" name="prw_points" readonly class="bg-gray-100 point-input"></td>
-                                <td><input type="text" name="prw_cm" class="highlight-entry"></td>
-                            </tr>
-                            <tr>
-                                <td>WILL</td>
-                                <td><input type="text" name="will_dt" readonly class="bg-gray-100"></td>
-                                <td>
-                                    <select name="will_level" data-attribute="will" class="input-field level-select bg-white w-full text-center highlight-entry">
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                    </select>
-                                </td>
-                                <td><input type="text" name="will_points" readonly class="bg-gray-100 point-input"></td>
-                                <td><input type="text" name="will_cm" class="highlight-entry"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Item Sections Container --><div id="item-container" class="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-2">
-                
-                <!-- RW --><div class="section h-full">
-                    <select id="rw_type" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                        <option value="">SELECT RW</option>
-                        <option value="Pistol">Pistol</option>
-                        <option value="Rifle">Rifle</option>
-                        <option value="Launcher">Launcher</option>
-                    </select>
-                    <div class="grid grid-cols-2 gap-x-4">
-                        <div><label for="rw_jam" class="label-sm">JAM</label><input type="text" id="rw_jam" class="input-field bg-gray-100" readonly></div>
-                        <div><label for="rw_range" class="label-sm">RANGE</label><input type="text" id="rw_range" class="input-field bg-gray-100" readonly></div>
+                        <!-- Quirk -->
+                        <div class="section">
+                            <div class="flex justify-between items-center">
+                                <label for="quirk" class="section-title">Quirk:</label>
+                                <button class="generate-quirk-btn text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded-md transition duration-300">Generate Quirk</button>
+                            </div>
+                            <textarea name="quirk" rows="6" class="textarea-field flex-grow highlight-entry mt-2 quirk-textarea"></textarea>
+                        </div>
                     </div>
-                    <label for="rw_notes" class="label-sm mt-2">NOTES</label>
-                    <textarea id="rw_notes" rows="2" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                    <div class="mt-auto pt-2"><label for="rw_points" class="label-sm">POINTS</label><input type="text" id="rw_points" class="input-field point-input bg-gray-100" readonly></div>
-                </div>
-
-                <!-- RW MOD --><div class="section h-full">
-                    <select id="rw_mod_type" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                        <option value="">SELECT RW MOD</option>
-                        <option value="Precision Mod (Range)">Precision Mod (Range)</option>
-                        <option value="Precision Mod (Aim)">Precision Mod (Aim)</option>
-                        <option value="Energy Mod">Energy Mod</option>
-                        <option value="Burst Mod">Burst Mod</option>
-                        <option value="Heavy Mod">Heavy Mod</option>
-                        <option value="Quality Mod">Quality Mod</option>
-                        <option value="Akimbo Pistols">Akimbo Pistols</option>
-                        <option value="Piercing Rifle Mod">Piercing Rifle Mod</option>
-                        <option value="Sniper Rifle Mod">Sniper Rifle Mod</option>
-                        <option value="Flame Launcher Mod">Flame Launcher Mod</option>
-                        <option value="Bullet Launcher Mod">Bullet Launcher Mod</option>
-                        <option value="Rocket Launcher Mod">Rocket Launcher Mod</option>
-                        <option value="Viscous Launcher Mod">Viscous Launcher Mod</option>
-                    </select>
-                    <label for="rwmod_notes" class="label-sm mt-2">NOTES</label>
-                    <textarea id="rwmod_notes" rows="3" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                    <div class="mt-auto pt-2"><label for="rwmod_points" class="label-sm">POINTS</label><input type="text" id="rwmod_points" class="input-field point-input bg-gray-100" readonly></div>
-                </div>
-
-                <!-- CCW --><div class="section h-full">
-                    <select id="ccw_type" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                        <option value="">SELECT CCW</option>
-                        <option value="Unarmed">Unarmed</option>
-                        <option value="Simple CCW">Simple CCW</option>
-                        <option value="Large CCW">Large CCW</option>
-                        <option value="Powered CCW">Powered CCW</option>
-                        <option value="Large Powered CCW">Large Powered CCW</option>
-                        <option value="Sharp CCW">Sharp CCW</option>
-                        <option value="Lancing CCW">Lancing CCW</option>
-                        <option value="Reaching CCW">Reaching CCW</option>
-                        <option value="Electric CCW">Electric CCW</option>
-                        <option value="Precise CCW">Precise CCW</option>
-                        <option value="Toxic CCW">Toxic CCW</option>
-                        <option value="Natural CCW">Natural CCW</option>
-                        <option value="Whipping CCW">Whipping CCW</option>
-                    </select>
-                    <div class="grid grid-cols-2 gap-x-4">
-                        <div><label for="ccw_attacks" class="label-sm">ATTACKS</label><input type="text" id="ccw_attacks" class="input-field bg-gray-100" readonly></div>
-                        <div><label for="ccw_range" class="label-sm">RANGE</label><input type="text" id="ccw_range" class="input-field bg-gray-100" readonly></div>
-                    </div>
-                    <label for="ccw_notes" class="label-sm mt-2">NOTES</label>
-                    <textarea id="ccw_notes" rows="2" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                    <div class="mt-auto pt-2"><label for="ccw_points" class="label-sm">POINTS</label><input type="text" id="ccw_points" class="input-field point-input bg-gray-100" readonly></div>
-                </div>
-
-                <!-- PE --><div class="section h-full">
-                    <button class="remove-item-btn">&times;</button>
-                    <select id="pe_type" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                        <option value="">SELECT PE</option>
-                        <option value="Cybernetics">Cybernetics</option>
-                        <option value="Extra Limbs">Extra Limbs</option>
-                        <option value="Heavy Armor">Heavy Armor</option>
-                        <option value="Jump Pack">Jump Pack</option>
-                        <option value="Mount">Mount</option>
-                        <option value="Psychic Implant">Psychic Implant</option>
-                        <option value="Stealth Suit">Stealth Suit</option>
-                        <option value="Targeting Reticule">Targeting Reticule</option>
-                        <option value="Combat Shield">Combat Shield</option>
-                        <option value="Lucky Fuzzy Dice">Lucky Fuzzy Dice</option>
-                        <option value="Brain Clamp">Brain Clamp</option>
-                        <option value="Vox Comms">Vox Comms</option>
-                        <option value="Grappling Hook">Grappling Hook</option>
-                        <option value="Banner of Morale">Banner of Morale</option>
-                        <option value="Trusty Compass">Trusty Compass</option>
-                        <option value="Tethered Weapons">Tethered Weapons</option>
-                    </select>
-                    <label for="pe_notes" class="label-sm mt-2">NOTES</label>
-                    <textarea id="pe_notes" rows="3" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                    <div class="mt-auto pt-2"><label for="pe_points" class="label-sm">POINTS</label><input type="text" id="pe_points" class="input-field point-input bg-gray-100" readonly></div>
-                </div>
-                
-                <!-- CI #1 --><div class="section h-full">
-                     <button class="remove-item-btn">&times;</button>
-                     <select id="ci1_type" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                        <option value="">SELECT CI#1</option>
-                        <option value="Force Bomb">Force Bomb</option>
-                        <option value="Grenade">Grenade</option>
-                        <option value="Cheater’s Dice">Cheater’s Dice</option>
-                        <option value="Medkit">Medkit</option>
-                        <option value="DeJammer">DeJammer</option>
-                        <option value="Crawler Mine">Crawler Mine</option>
-                        <option value="Smoke Bomb">Smoke Bomb</option>
-                        <option value="Terraformer">Terraformer</option>
-                        <option value="Stat Booster">Stat Booster</option>
-                        <option value="Revival Spore">Revival Spore</option>
-                        <option value="Hunter’s Bola">Hunter’s Bola</option>
-                        <option value="Stealth Field">Stealth Field</option>
-                        <option value="Neural Nano-Nuke">Neural Nano-Nuke</option>
-                        <option value="Cheap Compass">Cheap Compass</option>
-                        <option value="Adrenaline Stimulant">Adrenaline Stimulant</option>
-                     </select>
-                     <label for="ci1_range" class="label-sm">RANGE</label><input type="text" id="ci1_range" class="input-field bg-gray-100" readonly>
-                     <label for="ci1_notes" class="label-sm mt-2">NOTES</label>
-                     <textarea id="ci1_notes" rows="3" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                     <div class="mt-auto pt-2"><label for="ci1_points" class="label-sm">POINTS</label><input type="text" id="ci1_points" class="input-field point-input bg-gray-100" readonly></div>
-                </div>
-
-                <!-- CI #2 --><div class="section h-full">
-                     <button class="remove-item-btn">&times;</button>
-                     <select id="ci2_type" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                        <option value="">SELECT CI#2</option>
-                        <option value="Force Bomb">Force Bomb</option>
-                        <option value="Grenade">Grenade</option>
-                        <option value="Cheater’s Dice">Cheater’s Dice</option>
-                        <option value="Medkit">Medkit</option>
-                        <option value="DeJammer">DeJammer</option>
-                        <option value="Crawler Mine">Crawler Mine</option>
-                        <option value="Smoke Bomb">Smoke Bomb</option>
-                        <option value="Terraformer">Terraformer</option>
-                        <option value="Stat Booster">Stat Booster</option>
-                        <option value="Revival Spore">Revival Spore</option>
-                        <option value="Hunter’s Bola">Hunter’s Bola</option>
-                        <option value="Stealth Field">Stealth Field</option>
-                        <option value="Neural Nano-Nuke">Neural Nano-Nuke</option>
-                        <option value="Cheap Compass">Cheap Compass</option>
-                        <option value="Adrenaline Stimulant">Adrenaline Stimulant</option>
-                    </select>
-                     <label for="ci2_range" class="label-sm">RANGE</label><input type="text" id="ci2_range" class="input-field bg-gray-100" readonly>
-                     <label for="ci2_notes" class="label-sm mt-2">NOTES</label>
-                     <textarea id="ci2_notes" rows="3" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                     <div class="mt-auto pt-2"><label for="ci2_points" class="label-sm">POINTS</label><input type="text" id="ci2_points" class="input-field point-input bg-gray-100" readonly></div>
-                </div>
-
-                <!-- PP #1 --><div class="section h-full">
-                    <button class="remove-item-btn">&times;</button>
-                    <select id="pp1_select" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                        <option value="">SELECT PP#1</option>
-                        <option value="Fear">Fear</option>
-                        <option value="Heal">Heal</option>
-                        <option value="Telekinesis">Telekinesis</option>
-                        <option value="Teleport">Teleport</option>
-                        <option value="Warp Shield">Warp Shield</option>
-                        <option value="Psi-Up">Psi-Up</option>
-                        <option value="Unstable Underling">Unstable Underling</option>
-                        <option value="Hex Field">Hex Field</option>
-                        <option value="Mind Control">Mind Control</option>
-                        <option value="Psychic Lash">Psychic Lash</option>
-                        <option value="Spirit Seal">Spirit Seal</option>
-                        <option value="Warp Tendrils">Warp Tendrils</option>
-                        <option value="Flay Soul">Flay Soul</option>
-                        <option value="Mind Stab">Mind Stab</option>
-                        <option value="Magnetic Pull">Magnetic Pull</option>
-                        <option value="Steal Sight">Steal Sight</option>
-                    </select>
-                     <div class="grid grid-cols-2 gap-x-4">
-                        <div><label for="pp1_type" class="label-sm">TYPE</label><input type="text" id="pp1_type" class="input-field bg-gray-100" readonly></div>
-                        <div><label for="pp1_range" class="label-sm">RANGE</label><input type="text" id="pp1_range" class="input-field bg-gray-100" readonly></div>
-                     </div>
-                     <label for="pp1_notes" class="label-sm mt-2">NOTES</label>
-                     <textarea id="pp1_notes" rows="2" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                     <div class="mt-auto pt-2"><label for="pp1_points" class="label-sm">POINTS</label><input type="text" id="pp1_points" class="input-field point-input bg-gray-100" readonly></div>
-                </div>
-
-                <!-- PP #2 --><div class="section h-full">
-                    <button class="remove-item-btn">&times;</button>
-                    <select id="pp2_select" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                        <option value="">SELECT PP#2</option>
-                        <option value="Fear">Fear</option>
-                        <option value="Heal">Heal</option>
-                        <option value="Telekinesis">Telekinesis</option>
-                        <option value="Teleport">Teleport</option>
-                        <option value="Warp Shield">Warp Shield</option>
-                        <option value="Psi-Up">Psi-Up</option>
-                        <option value="Unstable Underling">Unstable Underling</option>
-                        <option value="Hex Field">Hex Field</option>
-                        <option value="Mind Control">Mind Control</option>
-                        <option value="Psychic Lash">Psychic Lash</option>
-                        <option value="Spirit Seal">Spirit Seal</option>
-                        <option value="Warp Tendrils">Warp Tendrils</option>
-                        <option value="Flay Soul">Flay Soul</option>
-                        <option value="Mind Stab">Mind Stab</option>
-                        <option value="Magnetic Pull">Magnetic Pull</option>
-                        <option value="Steal Sight">Steal Sight</option>
-                    </select>
-                     <div class="grid grid-cols-2 gap-x-4">
-                        <div><label for="pp2_type" class="label-sm">TYPE</label><input type="text" id="pp2_type" class="input-field bg-gray-100" readonly></div>
-                        <div><label for="pp2_range" class="label-sm">RANGE</label><input type="text" id="pp2_range" class="input-field bg-gray-100" readonly></div>
-                     </div>
-                     <label for="pp2_notes" class="label-sm mt-2">NOTES</label>
-                     <textarea id="pp2_notes" rows="2" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                     <div class="mt-auto pt-2"><label for="pp2_points" class="label-sm">POINTS</label><input type="text" id="pp2_points" class="input-field point-input bg-gray-100" readonly></div>
-                </div>
-
-            </div>
-             <!-- Add Item & Save PDF Section --><div class="col-span-12 section mt-2 flex flex-col sm:flex-row items-center gap-4 justify-start">
-                <!-- Add Item --><div class="flex-grow flex items-center gap-4 w-full sm:w-auto">
-                    <label for="add-item-type" class="section-title !mb-0">Add New Item:</label>
-                    <select id="add-item-type" class="input-field bg-white highlight-entry flex-grow">
-                        <option value="ci">Consumable Item (CI)</option>
-                        <option value="pe">Passive Equipment (PE)</option>
-                        <option value="pp">Psychic Power (PP)</option>
-                    </select>
-                    <button id="add-item-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                        + Add
-                    </button>
                 </div>
             </div>
-        </div>
+        </main>
+    </template>
 
-    </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
         // --- DATA OBJECTS ---
-        const vocationNotes = {
-            "Warrior of the Blood Deity": "Whenever another Stranger is staggered or goes OoA, this Stranger gets +1DT to its next strike. This effect cannot occur more than OpR.",
-            "Blue Collar": "This Stranger starts with two free items. OpG, the first pop action this Stranger takes is free. This Stranger gets +1 stick to consumable item range.",
-            "Bounty Hunter": "OpG, if this Stranger is BtB with a downed or staggered Stranger it may use an action to make it OoA. At the end of the mission, if this Stranger took another Stranger OoA, it gains a permanent CM:1 (1 coin modifier) to any of its attributes. Finally, this Stranger can shoot at enemies that are BtB with a friendly Stranger.",
-            "Fanatic": "This Stranger is not affected by Weird Weather Effects. OpR, this Stranger may reroll a single dice of one of its WILL results (excluding invoking psychic powers).",
-            "Gun Guru": "This Stranger ignores the normal RW rule and may shoot BtB targets. When shooting BtB, roll on the UA table instead of the UF table. This Stranger may take two Mods to its RW.",
-            "Gutter Born": "This Stranger is unaffected by difficult and dangerous terrain. This Stranger does not get -1DT to DEX rolls while shooting if it has 2 or more movement tokens.",
-            "Apothecarian": "OpR, as an action one friendly Stranger within 1 stick of this Stranger may Stand or immediately Recover with a +1DT bonus.",
-            "Psion": "For two actions, this Stranger may create a psychic shard that takes a consumable item slot. Popping the psychic shard allows the Stranger to manifest one of its psychic powers for free (still roll oppose or unopposed as indicated in the psychic power). Using the psychic shard does not count against this Stranger’s once per round psychic power use.",
-            "Psycho Sorcerer": "When this unit successfully manifests a psychic power, flip a coin. On a heads, replenish the actions used to manifest the psychic power. It may use one more psychic power this round. This effect can only occur OpR.",
-            "Cosmic Friar": "This Stranger must purchase a powered CCW or large powered CCW. It can use Return Fire and Snap Shot from Under Fire Table without a ranged weapon. This Stranger has a -1 modifier while rolling its UF rolls. This Stranger cannot use RWs.",
-            "Philosopher of the Change Deity": "OpR, When this Stranger rolls an opposing roll against another Stranger you may have the lower dice result re-rolled for both Strangers.",
-            "Scrap Commander": "When this Stranger pops an item, roll 1d6. On a 5 or a 6 the consumable item is replenished. This Stranger can pop an item to instead un-jam its weapon.",
-            "Buz' Zuk-ah": "As an action, this Stranger may give itself weakened to gain a +1DT bonus to its next Shoot, Fight, or Psychic Power roll.",
-            "Super Space Soldier": "This Stranger can select 2 passive equipment items to start. It gets the following perks to certain equipment that other vocations do not get:\n• Heavy Armor: Provides +3CM to CON rolls while defending instead of +2CM.\n• Jump Pack / Wings: This passive no longer requires an action, it can be turned on and off for a free action during the Stranger’s turn.\n• Mount: Gain +3CM to PRW and DEF vs. non-mounted Strangers.\n• Combat Shield: Gain +3CM to CON rolls while defending instead of +2.",
-            "Courier of the Rot Deity": "The first time this Stranger goes OoA, ignore it. Instead, it is placed down and is invulnerable until its next round activation. While this Stranger is invulnerable, any other Stranger that moves within 1 stick of this Stranger must immediately make a medium CON check (RC:9). On a fail, the moving Stranger is placed down and staggered. Upon the Courier’s next round activation, place it up with Exhausted(2). This effect can only occur OpG.",
-            "Veteran Vanguard": "OpG, this Stranger may reroll a CON, DEX, PRW, or WILL. The Stranger starts with +1CM to CON, DEX, PRW, and WILL.",
-            "Rock Robot": "This Stranger changes the Aim(1) action into Charge(1). For an action, Charge(1) grants a +1DT bonus to DEX while shooting. Unlike Aim(1), the Charge(1) bonus can be carried over into other rounds. It can’t charge more than one bonus this way. If this Stranger makes another go OoA, it can use the OoA Stranger’s RW and CCW until the end of the mission. All dodges are considered dashes.",
-            "Mechanical Hulk": "This Stranger may not take psychic powers, cannot increase AGI beyond level 2, and is limited to 2 actions per turn. This Stranger ignores the down condition and does not dodge on the UF and UA tables. This Stranger can still perform 1 action while staggered. If this Stranger is placed OoA, it is instead placed down where it went OoA and is treated as normal terrain. OpG, another BtB Stranger can reboot it with a Pop action. Upon a Medium WILL check (RC:9), the Mechanical Hulk reactivates. This Stranger may take 2 passive equipment items and starts with a +2CM to all CON rolls while defending.",
-            "Space Cowboy": "OpR and for one action, this Stranger may duel a stranger within LoS. The duel is resolved as a shoot action, but both Strangers use their DEX attributes to determine the opposed roll results. If the defending Stranger’s RW is jammed, then the defending Stranger immediately rolls on the UF table.",
-            "Masochist of the Lust Deity": "OpR and before an opposed roll, this Stranger may have an opposed roll add one more dice to the dice type. E.g., an opposed roll of 2d8 vs 2d6 now becomes 3d8 vs 3d6."
-        };
-
-        const attributeData = {
-            agi: { 1: { points: 0 }, 2: { points: 1 }, 3: { points: 3 } },
-            con: { 1: { dt: '2d4', points: 1 }, 2: { dt: '2d6', points: 2 }, 3: { dt: '2d8', points: 4 }, 4: { dt: '2d10', points: 8 } },
-            dex: { 1: { dt: '2d4', points: 0 }, 2: { dt: '2d6', points: 1 }, 3: { dt: '2d8', points: 3 }, 4: { dt: '2d10', points: 5 } },
-            prw: { 1: { dt: '2d4', points: 1 }, 2: { dt: '2d6', points: 2 }, 3: { dt: '2d8', points: 4 }, 4: { dt: '2d10', points: 6 } },
-            will: { 1: { dt: '2d4', points: 1 }, 2: { dt: '2d6', points: 2 }, 3: { dt: '2d8', points: 4 }, 4: { dt: '2d10', points: 6 } }
-        };
-
-        const rwData = {
-            "Pistol": { jam: "1-3", range: "2 Sticks", notes: "-", points: 1 },
-            "Rifle": { jam: "1-2", range: "3 Sticks", notes: "-", points: 2 },
-            "Launcher": { jam: "1-3", range: "3 Sticks", notes: "A ranged-weapon mod must be purchased with this weapon.", points: 2 }
-        };
-
-        const rwModData = {
-            "Precision Mod (Range)": { notes: "+1 Stick to RW Range.", points: 1 },
-            "Precision Mod (Aim)": { notes: "Aim(1)", points: 1 },
-            "Energy Mod": { notes: "Reroll DEX rolls of 1 while shooting", points: 2 },
-            "Burst Mod": { notes: "+2CM to DEX rolls while firing at a target within 1 stick.", points: 1 },
-            "Heavy Mod": { notes: "+1CM to UF rolls", points: 1 },
-            "Quality Mod": { notes: "-1 to Jam (e.g. 1-3 Jam becomes 1-2 Jam)", points: 1 },
-            "Akimbo Pistols": { notes: "Can still shoot with Jam but at -1DT. +1CM to DEX and UF rolls while shooting. Can only be taken with pistol.", points: 1 },
-            "Piercing Rifle Mod": { notes: "This weapon ignores cover bonus. Can only be taken with a rifle.", points: 2 },
-            "Sniper Rifle Mod": { notes: "Aim(2). Reroll 1s on DEX rolls while shooting. +1CM to UF rolls. This Stranger does not have a ranged penalty for shooting beyond its Range Value but cannot shoot at Strangers that are within 2 sticks. This mod can only be taken with the rifle.", points: 2 },
-            "Flame Launcher Mod": { notes: "Cone AoE. U(5)A(5) to UF. Can only be taken with Launcher.", points: 1 },
-            "Bullet Launcher Mod": { notes: "Reroll DEX rolls of 1 or 2 while shooting. This mod can only be taken with Launcher.", points: 1 },
-            "Rocket Launcher Mod": { notes: "Aim(2). Cannot target enemies < 1 stick away. Blast AoE. Can only be taken with Launcher.", points: 1 },
-            "Viscous Launcher Mod": { notes: "Aim(1). Blast AoE. Do not roll UF on hit, instead the Stranger and is placed Down and has Exhaust(2). This mod can only be taken with the Launcher.", points: 0 }
-        };
-
-        const ccwData = {
-            "Unarmed": { attacks: 3, range: "BtB", notes: "This Stranger gets -1DT when fighting another Stranger that is not unarmed.", points: 0 },
-            "Simple CCW": { attacks: 2, range: "BtB", notes: "–", points: 1 },
-            "Large CCW": { attacks: 1, range: "BtB", notes: "+1CM to UA rolls.", points: 1 },
-            "Powered CCW": { attacks: 2, range: "BtB", notes: "Reroll 1s on PRW rolls while striking.", points: 2 },
-            "Large Powered CCW": { attacks: 1, range: "BtB", notes: "Reroll PRW rolls of 1 while striking. +1CM to UA rolls.", points: 3 },
-            "Sharp CCW": { attacks: 2, range: "BtB", notes: "+1CM to UA rolls", points: 2 },
-            "Lancing CCW": { attacks: 2, range: "BtB", notes: "if this Stranger has 2 or more movement tokens gain +2DT to PRW while striking instead of +1DT.", points: 2 },
-            "Reaching CCW": { attacks: 2, range: "1/2 Stick", notes: "Ignores cover bonus to Def.", points: 2 },
-            "Electric CCW": { attacks: 2, range: "BtB", notes: "Target gets a -1DT to their CON roll while defending. However, reroll the higher 6-sided dice of any UA rolls if this Stranger successfully strikes.", points: 2 },
-            "Precise CCW": { attacks: 2, range: "BtB", notes: "Rerolls 1s on PRW rolls while striking.", points: 3 },
-            "Toxic CCW": { attacks: 1, range: "BtB", notes: "You may have the defending Stranger reroll the lower dice of the defending CON roll when striking with this CCW.", points: 3 },
-            "Natural CCW": { attacks: 3, range: "BtB", notes: "This weapon cannot be dropped.", points: 2 },
-            "Whipping CCW": { attacks: 1, range: "1 Stick", notes: "This Stranger rolls UF to Fight if the target Stranger within range is not BtB. U(5)A(5) to UF rolls. This Stranger gets -1DT to PRW while striking Strangers that are BtB.", points: 2 }
-        };
-
-        const peData = {
-            "Cybernetics": { notes: "+2CM to PRW rolls while striking. OpG this Stranger may reroll the result of one of its PRW roll.", points: 2 },
-            "Extra Limbs": { notes: "Increases the maximum number of this Stranger’s ATK by 1 (max 3). OpG this Stranger may strike as a free action.", points: 2 },
-            "Heavy Armor": { notes: "+2CM to CON rolls while defending. OpG, this Stranger may reroll the result of a CON roll while defending.", points: 2 },
-            "Jump Pack": { notes: "As an action, this Stranger gains flying. It can use another action to remove flying, thereby safely landing. OpG if this Stranger if flying it may make a free one stick movement during it’s turn.", points: 2 },
-            "Mount": { notes: "This Stranger gets +2CM to PRW rolls while striking non-mounted Strangers. This Stranger gets +2CM to CON rolls while defending from non-mounted Strangers. Opr, this Stranger can move 1/2 stick at the start of the Upkeep Phase. This Stranger cannot climb terrain.", points: 2 },
-            "Psychic Implant": { notes: "This Strangers gets +2CM to WILL rolls while invoking a psychic power. OpG, this Stranger may reroll the result of a WILL roll while invoking a psychic power.", points: 2 },
-            "Stealth Suit": { notes: "As an action, this Stranger can gain stealthy until its next activation.", points: 2 },
-            "Targeting Reticule": { notes: "This Stranger gets +2CM to DEX rolls while shooting. OpG, you may reroll the result of a DEX roll made while shooting.", points: 2 },
-            "Combat Shield": { notes: "+2CM to CON rolls while defending. This Stranger can use an activation to raise its shield; it gains +1DT to its next CON roll while defending.", points: 2 },
-            "Lucky Fuzzy Dice": { notes: "OpG, this Stranger may add the result of a 2d6 roll to any roll. This can be used after the result of a dice result is revealed.", points: 2 },
-            "Brain Clamp": { notes: "When this Stranger fails to manifest a psychic power, it may immediately try to manifest it again as a free action. This Stranger now has Exhausted(2) after resolving the second psychic power manifestation. This Stranger is immune to stupify.", points: 2 },
-            "Vox Comms": { notes: "OpR, this Stranger may use one of its standard actions to give another friendly Stranger an immediate free action.", points: 2 },
-            "Grappling Hook": { notes: "OpR and as a free action, this Stranger can climb a ledge within 1 stick. OpG, if this Stranger is falling it can make a medium AGI check (RC:7). If successful, it is instead placed on the any ledge within 1 stick.", points: 2 },
-            "Banner of Morale": { notes: "Any other friendly Stranger within 1 stick of this Stranger can add +2CM to any of their rolls. OpG, this Stranger may use an action to give another Stranger +1DT to their next roll.", points: 2 },
-            "Trusty Compass": { notes: "OpR, This Stranger gets to reroll the result of one direction roll. OpG at the start the Initiative Phase, this Stranger can move 1 stick toward a mission objective.", points: 2 },
-            "Tethered Weapons": { notes: "This Stranger cannot drop its RW or CCW weapons.", points: 2 }
-        };
-
-        const ciData = {
-            "Force Bomb": { range: "1 Stick", notes: "Blast AoE on target point. Resolve the force bomb by rolling an opposed 2d8 to every Strangers CON as if shooting. U(5)A(5). At the end of resolving UF, all Strangers are placed 1 stick in a random direction.", points: 1 },
-            "Grenade": { range: "1 Stick", notes: "Blast AoE on target point. Resolve the grenade by rolling a 2d10 roll as if shooting, +1 to UF rolls and U(5)A(5).", points: 1 },
-            "Cheater’s Dice": { range: "Self", notes: "This consumable may be used as a free-instant action. Use to add 2d6 to any roll made by this Stranger.", points: 1 },
-            "Medkit": { range: "BtB or Self", notes: "Target Stranger or self becomes Ready.", points: 1 },
-            "DeJammer": { range: "BtB", notes: "Instant action, un-jam a RW.", points: 1 },
-            "Crawler Mine": { range: "1 Stick", notes: "Place a mine token on target point. Starting next round, the mine detonates if a Stranger is within ½ stick (Blast AoE,2d10 to DEX,+1UF). The detonation resolves with Blast AoE, 2d10 DEX to shooting, and +1 to UF rolls. The mine can be shot at (use 2d8 CON for defense rolls) but it cannot be Downed or Staggered. This mine can move 1/2 stick at the start of each Initiative Phase.", points: 1 },
-            "Smoke Bomb": { range: "1 Stick", notes: "Place 1 stick-wide smoke on target point; smoke blocks LoS in places and grants +1DT to CON while defending for all Strangers inside. Strangers inside the smoke area can still be targeted and hit with blast AOE attacks. It disperses at the end of the next round.", points: 1 },
-            "Terraformer": { range: "2 Sticks", notes: "Place a 1Stickx1Stick piece of Difficult Terrain at target point. Any Strangers in the vicinity of the difficult terrain must move 1 stick in a random direction.", points: 1 },
-            "Stat Booster": { range: "Self", notes: "This item can be used as a immediate-free action. Until the end of the round, this Stranger gains +1DT to its next roll of a chosen attribute (CON, DEX, PRW, or WILL.)", points: 1 },
-            "Revival Spore": { range: "Self", notes: "Automatically used as an immediate-free action when the Stranger goes OoA. Return this Stranger with slowed, exhausted(2), and downed.", points: 1 },
-            "Hunter’s Bola": { range: "1 Stick & LoS", notes: "Must have full LoS to use. Roll 2d8 DEX as if the Stranger was shooting. Target becomes downed and staggered on a hit (no UF roll). This item may be used with the Overwatch command, Return Fire, and Snapshot.", points: 1 },
-            "Stealth Field": { range: "Self", notes: "Until the start of your next turn, this Stranger and friendly Strangers within 1 stick gain stealthy.", points: 1 },
-            "Neural Nano-Nuke": { range: "3 Sticks", notes: "Blast AoE. All Strangers in the Blast make a medium CON check (RC:7). On a fail, they are downed and staggered.", points: 1 },
-            "Cheap Compass": { range: "Self", notes: "As an immediate-free action, if this Stranger is affected by a direction, change the direction to that of the player’s choice.", points: 1 },
-            "Adrenaline Stimulant": { range: "Self", notes: "As an immediate-free action, this Stranger gains overwatch or preempt until its next activation.", points: 1 }
+        const tuberAttributeData = {
+            // Blunder
+            "1-4": { cost: 1 },
+            "1-3": { cost: 2 },
+            "1-2": { cost: 3 },
+            // Speed
+            "1 Chain": { cost: 0 },
+            "2 Chains": { cost: 1 },
+            "3 Chains": { cost: 3 },
+            // Range Attack
+            "2d6": { cost: 2 },
+            "2d8": { cost: 4 },
+            "2d10": { cost: 6 },
+            // Melee Attack (using unique keys)
+            "2d6-mel": { cost: 2 },
+            "2d8-mel": { cost: 4 },
+            "2d10-mel": { cost: 6 },
+            // Will to Live (using unique keys)
+            "2d6-wtl": { cost: 2 },
+            "2d8-wtl": { cost: 4 },
+            "2d10-wtl": { cost: 8 },
         };
         
-        const ppData = {
-            "Fear": { type: "Effect (RC:7)", range: "Self", notes: "All other Strangers within 1 stick are horrified.", points: 1 },
-            "Heal": { type: "Effect (RC:7)", range: "1 Stick", notes: "Target Stranger becomes Ready.", points: 1 },
-            "Telekinesis": { type: "Effect (RC:7) or Attack", range: "LoS", notes: "Move 1 ally or obstacle 1 stick. Attack: Move the enemy 1 stick", points: 1 },
-            "Teleport": { type: "Effect (RC:9)", range: "LoS", notes: "Place this Stranger anywhere within this Stranger’s LoS. Only Psion or Psycho Sorcerer vocations can take this psychic power.", points: 1 },
-            "Warp Shield": { type: "Effect (RC:7)", range: "LoS", notes: "Target Stranger or self gains +1DT to CON rolls while defending until end of round.", points: 1 },
-            "Psi-Up": { type: "Effect (RC:7)", range: "Self", notes: "Until the end of the round any friendly Stranger within 1 stick of this Stranger re-rolls 1s on CON, PRW, and WILL rolls.", points: 1 },
-            "Unstable Underling": { type: "Effect (RC:9)", range: "Self", notes: "Place a new underling Stranger (AGI:2, CON:2, DEX2, PRW:2, WILL:2) next to this Stranger. The underling Stranger activates immediately after this Stranger. At start of the Initiative Phase, this Stranger rolls 1d4. On a 1, it combusts and is OoA. There can be no more than one underling active per controlling warband at any time.", points: 2 },
-            "Hex Field": { type: "Effect (RC:7)", range: "LoS", notes: "Place a ½ stick radius field at target point, Strangers entering must make a Will roll and become staggered on a fail. The field blocks LoS as well.", points: 1 },
-            "Mind Control": { type: "Attack", range: "LoS", notes: "Target Stranger takes 1 action of the psychic’s choice", points: 2 },
-            "Psychic Lash": { type: "Attack", range: "3 Sticks", notes: "Roll UF +1", points: 1 },
-            "Spirit Seal": { type: "Attack", range: "LoS", notes: "Target Stranger is Slowed until the end of the next round.", points: 1 },
-            "Warp Tendrils": { type: "Effect (RC:7)", range: "LoS", notes: "Place a 1 stick wide piece of dangerous terrain on target point.", points: 1 },
-            "Flay Soul": { type: "Attack", range: "1 Stick", notes: "If triple success, target is Out of Action.", points: 2 },
-            "Mind Stab": { type: "Attack", range: "1 Stick", notes: "Roll UF +3, U(5)A(5) to UF.", points: 2 },
-            "Magnetic Pull": { type: "Attack", range: "LoS", notes: "Target Stranger is disarmed of a chosen weapon and it is flung 1 stick in a random direction", points: 1 },
-            "Steal Sight": { type: "Attack", range: "LoS", notes: "Target Stranger is blinded.", points: 2 }
+        const equipmentData = {
+            "Black Powder Weapons": "This freak gets +1DL to range attacks. Gain a black powder token after resolving any ranged attack.",
+            "Missile Weapons": "This freak does not accrue black powder tokens after shooting. However, the defending freak gets +1 to both their will to live and under volley rolls.",
+            "Close Combat Weapons": "This freak can only make melee attacks. However, OpR it may reroll the result of a blunder made if attempting a Strike! or Charge! action."
         };
-        
-        // --- ITEM COUNTERS ---
-        let ciCounter = 2;
-        let ppCounter = 2;
-        let peCounter = 1;
 
-        // --- DOM ELEMENTS ---
-        const mainContainer = document.querySelector('main');
-        const sheetContainer = document.querySelector('.sheet-container');
-        const vocationSelect = document.getElementById('vocation');
-        const notesTextarea = document.getElementById('vocation_notes');
-        const attributesTable = document.getElementById('attributes-table');
-        const rwTypeSelect = document.getElementById('rw_type');
-        const rwModTypeSelect = document.getElementById('rw_mod_type');
-        const ccwTypeSelect = document.getElementById('ccw_type');
-        const peTypeSelect = document.getElementById('pe_type');
-        const ci1TypeSelect = document.getElementById('ci1_type');
-        const ci2TypeSelect = document.getElementById('ci2_type');
-        const pp1Select = document.getElementById('pp1_select');
-        const pp2Select = document.getElementById('pp2_select');
-        const totalPointsDisplay = document.getElementById('total-points-display');
-        const addItemBtn = document.getElementById('add-item-btn');
-        const addItemTypeSelect = document.getElementById('add-item-type');
-        const itemContainer = document.getElementById('item-container');
+        const quirkList = [
+            { name: "Weaponized Whimpering", text: "As an instant action, this freak gains 1 panic token to get +1DL to this Freak’s next WTL roll." },
+            { name: "Panicked Hack", text: "As an instant action, this freak gains 1 panic token to get +1DL to this Freak’s next MEL roll." },
+            { name: "Hysterical Volley", text: "As an instant action, this freak gains 1 panic token to get +1DL to this Freak’s next RNG roll." },
+            { name: "Gormless Spite", text: "As an instant action, this freak gains 2 panic token to get +1DL to this Freak’s next opposed roll." },
+            { name: "Hopeless Acceptance", text: "As an instant action, remove 2 panic tokens. However this freak gets -2DL to its next opposed roll." },
+            { name: "True Son of God", text: "If this freak goes OoA, it may instead make another friendly freak go OoA in its place." }
+        ];
+
+        const leaderTraitList = [
+            { name: "The Deflector", text: "OpR and as an instant action, this Freak can reroll a blunder by giving another friendly Freak a panic token." },
+            { name: "Good Riddance", text: "When this Freak goes OoA, all other Freaks in your warband remove 2 panic tokens." },
+            { name: "The Narcissist", text: "OpR and as an instant action, this leader can give another Freak a panic token and +1DL to its next opposed roll." },
+            { name: "The Micromanager", text: "Reduce the blunder chance of friendly Freaks by 1. However, blundering causes 2 panic tokens instead of 1." },
+            { name: "The Energy Vampire", text: "All Freaks within line of sight of this leader gains an extra token whenever they accrue panic." },
+            { name: "The Mule", text: "OpR and as an instant action, this Freak can accrue 2 panic tokens to let another friendly Freak reroll an opposed roll." }
+        ];
+
+        
+        // --- GLOBAL DOM ELEMENTS ---
         const themeToggle = document.getElementById('theme-toggle');
         const themeToggleIndicator = document.getElementById('theme-toggle-indicator');
         const body = document.body;
-
-
-        // --- HTML TEMPLATES ---
-        const createCiSectionHTML = (id) => `
-            <div class="section h-full">
-                <button class="remove-item-btn">&times;</button>
-                <select id="ci${id}_type" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                    <option value="">SELECT CI#${id}</option>
-                    ${Object.keys(ciData).map(key => `<option value="${key}" title="${ciData[key].notes.replace(/"/g, '&quot;').replace(/\n/g, ' ')}">${key}</option>`).join('')}
-                </select>
-                <label for="ci${id}_range" class="label-sm">RANGE</label><input type="text" id="ci${id}_range" class="input-field bg-gray-100" readonly>
-                <label for="ci${id}_notes" class="label-sm mt-2">NOTES</label>
-                <textarea id="ci${id}_notes" rows="3" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                <div class="mt-auto pt-2"><label for="ci${id}_points" class="label-sm">POINTS</label><input type="text" id="ci${id}_points" class="input-field point-input bg-gray-100" readonly></div>
-            </div>`;
-
-        const createPeSectionHTML = (id) => `
-            <div class="section h-full">
-                <button class="remove-item-btn">&times;</button>
-                <select id="pe${id}_type" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                    <option value="">SELECT PE#${id}</option>
-                    ${Object.keys(peData).map(key => `<option value="${key}" title="${peData[key].notes.replace(/"/g, '&quot;').replace(/\n/g, ' ')}">${key}</option>`).join('')}
-                </select>
-                <label for="pe${id}_notes" class="label-sm mt-2">NOTES</label>
-                <textarea id="pe${id}_notes" rows="3" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                <div class="mt-auto pt-2"><label for="pe${id}_points" class="label-sm">POINTS</label><input type="text" id="pe${id}_points" class="input-field point-input bg-gray-100" readonly></div>
-            </div>`;
-
-        const createPpSectionHTML = (id) => `
-            <div class="section h-full">
-                <button class="remove-item-btn">&times;</button>
-                <select id="pp${id}_select" class="section-title input-field bg-white !border-none !pl-0 !mb-0 font-bold uppercase tracking-widest text-gray-600 highlight-entry">
-                    <option value="">SELECT PP#${id}</option>
-                    ${Object.keys(ppData).map(key => `<option value="${key}" title="${ppData[key].notes.replace(/"/g, '&quot;').replace(/\n/g, ' ')}">${key}</option>`).join('')}
-                </select>
-                <div class="grid grid-cols-2 gap-x-4">
-                    <div><label for="pp${id}_type" class="label-sm">TYPE</label><input type="text" id="pp${id}_type" class="input-field bg-gray-100" readonly></div>
-                    <div><label for="pp${id}_range" class="label-sm">RANGE</label><input type="text" id="pp${id}_range" class="input-field bg-gray-100" readonly></div>
-                </div>
-                <label for="pp${id}_notes" class="label-sm mt-2">NOTES</label>
-                <textarea id="pp${id}_notes" rows="2" class="textarea-field flex-grow bg-gray-100" readonly></textarea>
-                <div class="mt-auto pt-2"><label for="pp${id}_points" class="label-sm">POINTS</label><input type="text" id="pp${id}_points" class="input-field point-input bg-gray-100" readonly></div>
-            </div>`;
+        const warbandContainer = document.getElementById('warband-container');
+        const addFreakBtn = document.getElementById('add-freak-btn');
+        const freakTemplate = document.getElementById('freak-template');
+        const warbandCostDisplay = document.getElementById('warband-cost-display');
 
         // --- FUNCTIONS ---
-
-        function addTooltipsToSelect(selectElement, dataObject) {
-            const options = selectElement.options;
-            for (let i = 0; i < options.length; i++) {
-                const option = options[i];
-                const key = option.value;
-                if (key && dataObject[key]) {
-                    // For vocations, the note is the direct value in the object
-                    const note = typeof dataObject[key] === 'string' ? dataObject[key] : dataObject[key].notes;
-                    if (note) {
-                        // Replace newlines with spaces for better tooltip display and set the title
-                        option.setAttribute('title', note.replace(/\n/g, ' '));
-                    }
-                }
-            }
-        }
 
         function applyTheme(theme) {
             if (theme === 'dark') {
@@ -776,196 +426,125 @@
             textarea.style.height = textarea.scrollHeight + 'px';
         }
 
-
-        function calculateTotalPoints() {
+        function updateWarbandCost() {
             let total = 0;
-            document.querySelectorAll('.point-input').forEach(input => {
+            document.querySelectorAll('.freak-total-cost').forEach(display => {
+                total += parseInt(display.textContent) || 0;
+            });
+            warbandCostDisplay.textContent = total;
+        }
+
+        function calculateFreakCost(freakCard) {
+            let total = 0;
+            freakCard.querySelectorAll('.cost-input').forEach(input => {
                 const value = parseInt(input.value, 10);
                 if (!isNaN(value)) {
                     total += value;
                 }
             });
-            totalPointsDisplay.textContent = total;
+            freakCard.querySelector('.freak-total-cost').textContent = total;
+            updateWarbandCost(); // Update warband total whenever a freak's cost changes
         }
 
         function updateAttributeRow(selectElement) {
-            const attribute = selectElement.dataset.attribute;
-            const level = selectElement.value;
-            const data = attributeData[attribute][level];
+            const freakCard = selectElement.closest('.sheet-container');
+            let level = selectElement.value;
             const row = selectElement.closest('tr');
-            const dtInput = row.querySelector(`input[name="${attribute}_dt"]`);
-            const pointsInput = row.querySelector(`input[name="${attribute}_points"]`);
+            const costInput = row.querySelector('.cost-input');
+            const keymap = selectElement.dataset.keymap;
+
+            let dataKey = level;
+            // Apply special mapping for RNG, MEL, WtL
+            if (keymap === 'mel') dataKey = level + '-mel';
+            else if (keymap === 'wtl') dataKey = level + '-wtl';
+            
+            const data = tuberAttributeData[dataKey];
 
             if (data) {
-                if (dtInput) dtInput.value = data.dt || '';
-                pointsInput.value = data.points;
-            }
-            calculateTotalPoints();
-        }
-
-        function updateRwSection() {
-            const selectedRw = rwTypeSelect.value;
-            const data = rwData[selectedRw];
-            const jamInput = document.getElementById('rw_jam');
-            const rangeInput = document.getElementById('rw_range');
-            const notesTextarea = document.getElementById('rw_notes');
-            const pointsInput = document.getElementById('rw_points');
-
-            if (data) {
-                jamInput.value = data.jam;
-                rangeInput.value = data.range;
-                notesTextarea.value = data.notes;
-                pointsInput.value = data.points;
+                costInput.value = data.cost;
             } else {
-                jamInput.value = '';
-                rangeInput.value = '';
-                notesTextarea.value = '';
-                pointsInput.value = '';
+                costInput.value = '';
             }
-            autosizeTextarea(notesTextarea);
-            calculateTotalPoints();
-        }
-
-        function updateRwModSection() {
-            const selectedMod = rwModTypeSelect.value;
-            const data = rwModData[selectedMod];
-            const notesTextarea = document.getElementById('rwmod_notes');
-            const pointsInput = document.getElementById('rwmod_points');
-
-            if (data) {
-                notesTextarea.value = data.notes;
-                pointsInput.value = data.points;
-            } else {
-                notesTextarea.value = '';
-                pointsInput.value = '';
-            }
-            autosizeTextarea(notesTextarea);
-            calculateTotalPoints();
-        }
-
-        function updateCcwSection() {
-            const selectedCcw = ccwTypeSelect.value;
-            const data = ccwData[selectedCcw];
-            const attacksInput = document.getElementById('ccw_attacks');
-            const rangeInput = document.getElementById('ccw_range');
-            const notesTextarea = document.getElementById('ccw_notes');
-            const pointsInput = document.getElementById('ccw_points');
-
-            if (data) {
-                attacksInput.value = data.attacks;
-                rangeInput.value = data.range;
-                notesTextarea.value = data.notes;
-                pointsInput.value = data.points;
-            } else {
-                attacksInput.value = '';
-                rangeInput.value = '';
-                notesTextarea.value = '';
-                pointsInput.value = '';
-            }
-            autosizeTextarea(notesTextarea);
-            calculateTotalPoints();
-        }
-
-        function updatePeSection(selectElement) {
-            const section = selectElement.closest('.section');
-            const selectedPe = selectElement.value;
-            const data = peData[selectedPe];
-
-            const notesTextarea = section.querySelector('textarea');
-            const pointsInput = section.querySelector('.point-input');
-
-            if (data) {
-                notesTextarea.value = data.notes;
-                pointsInput.value = data.points;
-            } else {
-                notesTextarea.value = '';
-                pointsInput.value = '';
-            }
-            autosizeTextarea(notesTextarea);
-            calculateTotalPoints();
-        }
-
-        function updateCiSection(selectElement) {
-            const section = selectElement.closest('.section');
-            const selectedCi = selectElement.value;
-            const data = ciData[selectedCi];
-
-            const rangeInput = section.querySelector('input[id*="_range"]');
-            const notesTextarea = section.querySelector('textarea');
-            const pointsInput = section.querySelector('.point-input');
-
-            if (data) {
-                if(rangeInput) rangeInput.value = data.range;
-                notesTextarea.value = data.notes;
-                pointsInput.value = data.points;
-            } else {
-                if(rangeInput) rangeInput.value = '';
-                notesTextarea.value = '';
-                pointsInput.value = '';
-            }
-             autosizeTextarea(notesTextarea);
-            calculateTotalPoints();
+            calculateFreakCost(freakCard);
         }
         
-        function updatePpSection(selectElement) {
-            const section = selectElement.closest('.section');
-            const selectedPp = selectElement.value;
-            const data = ppData[selectedPp];
-
-            const typeInput = section.querySelector('input[id*="_type"]');
-            const rangeInput = section.querySelector('input[id*="_range"]');
-            const notesTextarea = section.querySelector('textarea');
-            const pointsInput = section.querySelector('.point-input');
-
-            if (data) {
-                if(typeInput) typeInput.value = data.type;
-                if(rangeInput) rangeInput.value = data.range;
-                notesTextarea.value = data.notes;
-                pointsInput.value = data.points;
-            } else {
-                if(typeInput) typeInput.value = '';
-                if(rangeInput) rangeInput.value = '';
-                notesTextarea.value = '';
-                pointsInput.value = '';
-            }
+        function updateEquipmentNotes(selectElement) {
+            const freakCard = selectElement.closest('.sheet-container');
+            const selectedEquipment = selectElement.value;
+            const notesTextarea = freakCard.querySelector('.equipment-notes');
+            const notes = equipmentData[selectedEquipment] || "";
+            notesTextarea.value = notes;
             autosizeTextarea(notesTextarea);
-            calculateTotalPoints();
+        }
+        
+        function generateRandomQuirk(button) {
+            const freakCard = button.closest('.sheet-container');
+            const quirkTextarea = freakCard.querySelector('.quirk-textarea');
+            const randomIndex = Math.floor(Math.random() * quirkList.length);
+            const randomQuirk = quirkList[randomIndex];
+            quirkTextarea.value = `${randomQuirk.name}\n${randomQuirk.text}`;
+            autosizeTextarea(quirkTextarea);
         }
 
-        function handleAddItem() {
-            const itemType = addItemTypeSelect.value;
-            let newItemHTML = '';
-            let newSelectId = '';
-            
-            if (itemType === 'ci') {
-                ciCounter++;
-                newItemHTML = createCiSectionHTML(ciCounter);
-                newSelectId = `ci${ciCounter}_type`;
-            } else if (itemType === 'pe') {
-                peCounter++;
-                newItemHTML = createPeSectionHTML(peCounter);
-                newSelectId = `pe${peCounter}_type`;
-            } else if (itemType === 'pp') {
-                ppCounter++;
-                newItemHTML = createPpSectionHTML(ppCounter);
-                newSelectId = `pp${ppCounter}_select`;
-            }
+        function generateRandomLeaderTrait(button) {
+            const freakCard = button.closest('.sheet-container');
+            const leaderTraitTextarea = freakCard.querySelector('.leader-trait-textarea');
+            const randomIndex = Math.floor(Math.random() * leaderTraitList.length);
+            const randomTrait = leaderTraitList[randomIndex];
+            leaderTraitTextarea.value = `${randomTrait.name}\n${randomTrait.text}`;
+            autosizeTextarea(leaderTraitTextarea);
+        }
 
-            if (newItemHTML) {
-                itemContainer.insertAdjacentHTML('beforeend', newItemHTML);
-                const newSelect = document.getElementById(newSelectId);
-                if (itemType === 'ci') {
-                    newSelect.addEventListener('change', () => updateCiSection(newSelect));
-                } else if (itemType === 'pe') {
-                    newSelect.addEventListener('change', () => updatePeSection(newSelect));
-                } else if (itemType === 'pp') {
-                    newSelect.addEventListener('change', () => updatePpSection(newSelect));
+        function initializeFreakCard(freakCard) {
+            // Find all interactive elements *within* this new card
+            const attributesTable = freakCard.querySelector('.attribute-table');
+            const equipmentSelect = freakCard.querySelector('.equipment-select');
+            const generateQuirkBtn = freakCard.querySelector('.generate-quirk-btn');
+            const leaderToggle = freakCard.querySelector('.is-leader-toggle');
+            const generateLeaderTraitBtn = freakCard.querySelector('.generate-leader-trait-btn');
+            const removeFreakBtn = freakCard.querySelector('.remove-freak-btn');
+            const allTextareas = freakCard.querySelectorAll('textarea');
+
+            // Attach Listeners
+            attributesTable.addEventListener('change', event => {
+                if (event.target.classList.contains('level-select')) {
+                    updateAttributeRow(event.target);
                 }
-            }
+            });
+
+            equipmentSelect.addEventListener('change', () => updateEquipmentNotes(equipmentSelect));
+            generateQuirkBtn.addEventListener('click', () => generateRandomQuirk(generateQuirkBtn));
+            generateLeaderTraitBtn.addEventListener('click', () => generateRandomLeaderTrait(generateLeaderTraitBtn));
+            
+            leaderToggle.addEventListener('change', () => {
+                const leaderTraitSection = freakCard.querySelector('.leader-trait-section');
+                const leaderTraitTextarea = freakCard.querySelector('.leader-trait-textarea');
+                if (leaderToggle.checked) {
+                    leaderTraitSection.classList.remove('hidden');
+                } else {
+                    leaderTraitSection.classList.add('hidden');
+                    leaderTraitTextarea.value = ''; // Clear the trait if they are no longer a leader
+                }
+            });
+
+            removeFreakBtn.addEventListener('click', () => {
+                freakCard.remove();
+                updateWarbandCost();
+            });
+
+            freakCard.addEventListener('input', event => {
+                if (event.target.tagName.toLowerCase() === 'textarea') {
+                    autosizeTextarea(event.target);
+                }
+            });
+
+            // Initialize default states for this new card
+            allTextareas.forEach(autosizeTextarea);
+            freakCard.querySelectorAll('.level-select').forEach(updateAttributeRow);
+            updateEquipmentNotes(equipmentSelect);
         }
 
-
-        // --- EVENT LISTENERS ---
+        // --- GLOBAL EVENT LISTENERS ---
         themeToggle.addEventListener('click', () => {
             const isDarkMode = body.classList.toggle('dark-mode');
             const newTheme = isDarkMode ? 'dark' : 'light';
@@ -973,72 +552,23 @@
             applyTheme(newTheme);
         });
 
-        addItemBtn.addEventListener('click', handleAddItem);
-
-        mainContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('remove-item-btn')) {
-                const section = event.target.closest('.section');
-                if (section) {
-                    section.remove();
-                    calculateTotalPoints();
-                }
-            }
-        });
-
-        vocationSelect.addEventListener('change', function() {
-            notesTextarea.value = vocationNotes[this.value] || '';
-            autosizeTextarea(notesTextarea);
-        });
-
-        attributesTable.addEventListener('change', function(event) {
-            if (event.target.classList.contains('level-select')) {
-                updateAttributeRow(event.target);
-            }
-        });
-
-        rwTypeSelect.addEventListener('change', updateRwSection);
-        rwModTypeSelect.addEventListener('change', updateRwModSection);
-        ccwTypeSelect.addEventListener('change', updateCcwSection);
-        
-        peTypeSelect.addEventListener('change', () => updatePeSection(peTypeSelect));
-        ci1TypeSelect.addEventListener('change', () => updateCiSection(ci1TypeSelect));
-        ci2TypeSelect.addEventListener('change', () => updateCiSection(ci2TypeSelect));
-        pp1Select.addEventListener('change', () => updatePpSection(pp1Select));
-        pp2Select.addEventListener('change', () => updatePpSection(pp2Select));
-
-        mainContainer.addEventListener('input', function(event) {
-            if (event.target.classList.contains('point-input')) {
-                calculateTotalPoints();
-            }
-            // Also autosize any textarea on direct user input
-            if (event.target.tagName.toLowerCase() === 'textarea') {
-                autosizeTextarea(event.target);
-            }
+        addFreakBtn.addEventListener('click', () => {
+            const newFreak = freakTemplate.content.cloneNode(true);
+            warbandContainer.appendChild(newFreak);
+            
+            const newCardElement = warbandContainer.lastElementChild;
+            initializeFreakCard(newCardElement);
         });
 
         // --- INITIALIZATION ---
         const savedTheme = localStorage.getItem('theme') || 'light';
         applyTheme(savedTheme);
+        
+        // Add the first freak automatically on page load
+        addFreakBtn.click();
 
-        // Add tooltips to all initial select elements
-        addTooltipsToSelect(vocationSelect, vocationNotes);
-        addTooltipsToSelect(rwTypeSelect, rwData);
-        addTooltipsToSelect(rwModTypeSelect, rwModData);
-        addTooltipsToSelect(ccwTypeSelect, ccwData);
-        addTooltipsToSelect(peTypeSelect, peData);
-        addTooltipsToSelect(ci1TypeSelect, ciData);
-        addTooltipsToSelect(ci2TypeSelect, ciData);
-        addTooltipsToSelect(pp1Select, ppData);
-        addTooltipsToSelect(pp2Select, ppData);
-
-        document.querySelectorAll('.level-select').forEach(updateAttributeRow);
-        calculateTotalPoints();
-
-        peTypeSelect.addEventListener('change', () => updatePeSection(peTypeSelect));
         });
     </script>
 
 </body>
 </html>
-
-
