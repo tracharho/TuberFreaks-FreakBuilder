@@ -147,6 +147,10 @@
         
         /* --- PRINT STYLES --- */
         @media print {
+            @page {
+                size: 8.5in 11in;
+                margin: 0.25in;
+            }
             body {
                 background-color: #ffffff !important;
                 color: #000000 !important;
@@ -174,22 +178,27 @@
             }
 
             /* Simplify borders and remove shadows */
+            .warband-header-print {
+                border: 2px solid #000000 !important;
+                box-shadow: none !important;
+                padding: 0.25in;
+                height: 3.17in; /* As per diagram */
+                box-sizing: border-box; /* Include padding/border in height */
+                margin-bottom: 0.25in; /* Gap */
+                /* REMOVED: page-break-after: always; */
+            }
             .sheet-container {
                 border: 2px solid #000000 !important;
                 box-shadow: none !important;
-                margin-bottom: 1.5rem;
+                padding: 0.25in;
+                height: 3.17in; /* As per diagram */
+                box-sizing: border-box; /* Include padding/border in height */
+                margin-bottom: 0.25in; /* Gap between freaks */
             }
-            .section {
-                 border: 1px solid #aaaaaa !important;
-            }
+
             .border-b-2 {
                  border-bottom-width: 2px !important;
                  border-color: #000000 !important;
-            }
-
-            /* Prevent freak cards from splitting across pages */
-            .sheet-container {
-                page-break-inside: avoid;
             }
 
             /* Force layout into a single column */
@@ -212,10 +221,6 @@
             .is-leader-toggle {
                 display: none !important;
             }
-            .is-leader-toggle + span {
-                /* If checked, it will show "Leader", if not, this section will be empty */
-                /* This is handled by the :checked state in logic */
-            }
             
             /* Ensure textareas print their full content */
             textarea {
@@ -229,7 +234,7 @@
 <body class="p-4 md:p-8 transition-colors duration-300">
 
     <!-- Global Header -->
-    <div class="max-w-4xl mx-auto mb-4">
+    <div class="max-w-4xl mx-auto mb-4 warband-header-print">
         <div class="flex justify-between items-start">
             <h1 class="text-xl md:text-2xl font-bold uppercase tracking-widest text-center flex-grow">Tuber Freak Creator</h1>
             <!-- Theme Toggle -->
@@ -265,18 +270,12 @@
     </div>
 
     <!-- Controls -->
-    <div class="max-w-4xl mx-auto mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 no-print">
-        <button id="export-warband-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-            Export Warband (.json)
+    <div class="max-w-4xl mx-auto mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 no-print">
+        <button id="text-export-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+            Text Export (Printable)
         </button>
         
-        <!-- This is a styled label for a hidden file input -->
-        <label id="import-warband-label" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 text-center cursor-pointer">
-            Import Warband (.json)
-        </label>
-        <input type="file" id="import-warband-input" class="hidden" accept=".json">
-        
-        <button id="add-freak-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 sm:col-span-1">
+        <button id="add-freak-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
             + Add New Freak
         </button>
     </div>
@@ -380,7 +379,7 @@
                                         <td>WtL</td>
                                         <td>
                                             <select name="wtl_level" data-keymap="wtl" class="input-field level-select bg-white w-full text-center highlight-entry">
-                                                <option value="2d6">2d6</option>
+                                                <option value="2d6">2d6</toption>
                                                 <option value="2d8">2d8</option>
                                                 <option value="2d10">2d10</option>
                                             </select>
@@ -492,8 +491,7 @@
         const freakTemplate = document.getElementById('freak-template');
         const warbandCostDisplay = document.getElementById('warband-cost-display');
         const warbandNameInput = document.getElementById('warband-name');
-        const exportBtn = document.getElementById('export-warband-btn');
-        const importInput = document.getElementById('import-warband-input');
+        const textExportBtn = document.getElementById('text-export-btn'); // New button
 
         // --- FUNCTIONS ---
 
@@ -651,95 +649,56 @@
         
         // --- IMPORT/EXPORT FUNCTIONS ---
         
-        function exportWarband() {
-            const warbandData = {
-                warbandName: warbandNameInput.value,
-                freaks: []
-            };
+        function exportWarbandAsText() {
+            let textOutput = "";
+            const warbandName = warbandNameInput.value || "My Warband";
+            const warbandCost = warbandCostDisplay.textContent;
 
-            document.querySelectorAll('.sheet-container').forEach(freakCard => {
-                const freakData = {
-                    name: freakCard.querySelector('.name-input').value,
-                    isLeader: freakCard.querySelector('.is-leader-toggle').checked,
-                    blu_level: freakCard.querySelector('select[name="blu_level"]').value,
-                    spd_level: freakCard.querySelector('select[name="spd_level"]').value,
-                    rng_level: freakCard.querySelector('select[name="rng_level"]').value,
-                    mel_level: freakCard.querySelector('select[name="mel_level"]').value,
-                    wtl_level: freakCard.querySelector('select[name="wtl_level"]').value,
-                    leaderTrait: freakCard.querySelector('.leader-trait-textarea').value,
-                    equipment: freakCard.querySelector('.equipment-select').value,
-                    quirk: freakCard.querySelector('.quirk-textarea').value
-                };
-                warbandData.freaks.push(freakData);
+            textOutput += `WARBAND: ${warbandName}\n`;
+            textOutput += `TOTAL COST: ${warbandCost}\n`;
+            textOutput += "========================================\n\n";
+
+            document.querySelectorAll('.sheet-container').forEach((freakCard, index) => {
+                const name = freakCard.querySelector('.name-input').value || 'Unnamed Freak';
+                const cost = freakCard.querySelector('.freak-total-cost').textContent;
+                const isLeader = freakCard.querySelector('.is-leader-toggle').checked;
+
+                textOutput += `--- FREAK ${index + 1}: ${name} ---\n`;
+                textOutput += `Cost: ${cost}\n`;
+                if (isLeader) textOutput += `STATUS: LEADER\n`;
+                
+                textOutput += "\n[Characteristics]\n";
+                textOutput += `  BLU: ${freakCard.querySelector('select[name="blu_level"]').value}\n`;
+                textOutput += `  SPD: ${freakCard.querySelector('select[name="spd_level"]').value}\n`;
+                textOutput += `  RNG: ${freakCard.querySelector('select[name="rng_level"]').value}\n`;
+                textOutput += `  MEL: ${freakCard.querySelector('select[name="mel_level"]').value}\n`;
+                textOutput += `  WtL: ${freakCard.querySelector('select[name="wtl_level"]').value}\n`;
+
+                const equipment = freakCard.querySelector('.equipment-select').value;
+                if (equipment) {
+                    textOutput += `\n[Equipment]\n  ${equipment}\n`;
+                    const equipmentNotes = freakCard.querySelector('.equipment-notes').value;
+                    textOutput += `  Notes: ${equipmentNotes.replace(/\n/g, ' ')}\n`;
+                }
+
+                const quirk = freakCard.querySelector('.quirk-textarea').value;
+                if (quirk) {
+                    textOutput += `\n[Quirk]\n${quirk}\n`;
+                }
+
+                const leaderTrait = freakCard.querySelector('.leader-trait-textarea').value;
+                if (isLeader && leaderTrait) {
+                    textOutput += `\n[Leader Trait]\n${leaderTrait}\n`;
+                }
+
+                textOutput += "\n========================================\n\n";
             });
 
-            // Create and download the JSON file
-            const dataStr = JSON.stringify(warbandData, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            const warbandName = warbandNameInput.value.trim().replace(/ /g, '_') || 'my_warband';
-            a.download = `${warbandName}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function importWarband(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const warbandData = JSON.parse(e.target.result);
-                    
-                    // Clear existing warband
-                    warbandContainer.innerHTML = '';
-                    
-                    // Set warband name
-                    warbandNameInput.value = warbandData.warbandName || 'My Warband';
-
-                    // Re-create each freak
-                    warbandData.freaks.forEach(freakData => {
-                        const newCard = createFreakCard();
-                        
-                        // Populate fields from JSON data
-                        newCard.querySelector('.name-input').value = freakData.name;
-                        newCard.querySelector('select[name="blu_level"]').value = freakData.blu_level;
-                        newCard.querySelector('select[name="spd_level"]').value = freakData.spd_level;
-                        newCard.querySelector('select[name="rng_level"]').value = freakData.rng_level;
-                        newCard.querySelector('select[name="mel_level"]').value = freakData.mel_level;
-                        newCard.querySelector('select[name="wtl_level"]').value = freakData.wtl_level;
-                        newCard.querySelector('.equipment-select').value = freakData.equipment;
-                        newCard.querySelector('.quirk-textarea').value = freakData.quirk;
-                        newCard.querySelector('.leader-trait-textarea').value = freakData.leaderTrait;
-
-                        // Set leader status and show trait if needed
-                        const leaderToggle = newCard.querySelector('.is-leader-toggle');
-                        leaderToggle.checked = freakData.isLeader;
-                        if (freakData.isLeader) {
-                            newCard.querySelector('.leader-trait-section').classList.remove('hidden');
-                        }
-
-                        // Manually trigger updates that fill text areas and calculate costs
-                        newCard.querySelectorAll('.level-select').forEach(updateAttributeRow);
-                        updateEquipmentNotes(newCard.querySelector('.equipment-select'));
-                        newCard.querySelectorAll('textarea').forEach(autosizeTextarea);
-                    });
-                    
-                    // Final cost update
-                    updateWarbandCost();
-
-                } catch (error) {
-                    console.error("Failed to parse imported file:", error);
-                    alert("Error: Could not read or parse the selected file. Please ensure it is a valid warband .json file.");
-                }
-            };
-            reader.readAsText(file);
-            
-            // Reset the file input to allow re-importing the same file
-            event.target.value = null;
+            // Open the text in a new window, wrapping it in <pre> tags to preserve formatting
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write('<pre>' + textOutput + '</pre>');
+            newWindow.document.title = `${warbandName} - Printable Export`;
+            newWindow.document.close();
         }
 
 
@@ -753,8 +712,7 @@
 
         addFreakBtn.addEventListener('click', createFreakCard);
         
-        exportBtn.addEventListener('click', exportWarband);
-        importInput.addEventListener('change', importWarband);
+        textExportBtn.addEventListener('click', exportWarbandAsText); // New listener
 
 
         // --- INITIALIZATION ---
